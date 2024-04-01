@@ -3,21 +3,28 @@ package org.example;
 public class TestThreads {
 
     public static void main(String[] args) throws InterruptedException {
-        for (int i = 0; i < 100_000; i++) {
+        final int count = 100_000;
+        final Thread[] threads = new Thread[count];
+        for (int i = 0; i < count; i++) {
+            final int n = i;
             if (args.length == 0 || !args[0].equals("virtual")) {
-                new Thread(TestThreads::sleep).start();
+                System.out.println("Starting thread #" + i);
+                threads[i] = new Thread(() -> sleep(n));
+                threads[i].setDaemon(true);
+                threads[i].start();
             } else {
-                Thread.startVirtualThread(TestThreads::sleep);
+                threads[i] = Thread.startVirtualThread(() -> sleep(n));
             }
-
         }
-        Thread.sleep(3000);
+        for (int i = 0; i < count; i++) {
+            threads[i].join();
+        }
     }
 
-    public static void sleep() {
+    public static void sleep(int n) {
         try {
-            System.out.println(Thread.currentThread());
-            Thread.sleep(100_000_000);
+            Thread.sleep(1000);
+            System.out.printf("Thread # %s finished\n", n);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
